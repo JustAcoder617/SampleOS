@@ -27,7 +27,27 @@ void k_putchar(char c) {
     if (c == '\n') {
         cursor_x = 0;
         cursor_y++;
-    } else {
+    } 
+    else if (c == '\b') {
+        if (cursor_x > 0) {
+            // 1. Recua o cursor horizontalmente
+            cursor_x--;
+            
+            // 2. Sobrescreve o caractere naquela posição com um espaço vazio
+            const int index = cursor_y * MAX_WIDTH + cursor_x;
+            VGA_BUFFER[index] = vga_entry(' ', VGA_COLOR_WHITE);
+        } 
+        else if (cursor_y > 0) {
+            // Caso especial: Backspace no início da linha
+            // Sobe para o final da linha anterior
+            cursor_y--;
+            cursor_x = MAX_WIDTH - 1;
+            
+            const int index = cursor_y * MAX_WIDTH + cursor_x;
+            VGA_BUFFER[index] = vga_entry(' ', VGA_COLOR_WHITE);
+        }
+    }
+    else{
         const int index = cursor_y * MAX_WIDTH + cursor_x;
         VGA_BUFFER[index] = vga_entry(c, VGA_COLOR_WHITE);
         cursor_x++;
