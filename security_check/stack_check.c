@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 extern uint32_t stack_bottom;
+void desligar_pc();
 
 #define STACK_MAGIC 0xDEADC0DE
 
@@ -10,6 +11,24 @@ void check_stack() {
     uint32_t* canary_address = (uint32_t*)&stack_bottom;
 
     if (*canary_address != STACK_MAGIC) {
-        k_print("ATENTION: ERROR CODE: AES924 (se tu n e dev basicamente a stack do seu coracao bugou :D reiniciando o pc...)");
+        return 1;
+        
+    }
+}
+void warning(void){
+    k_print("ATENTION:ERROR CODE NOSTACK");
+    desligar_pc();
+}
+
+void desligar_pc() {
+    // 1. Desativa as interrupções (Ninguém pode interromper o adeus)
+    __asm__ volatile ("cli");
+
+    // 2. Manda o comando para o Hardware (Exemplo QEMU/ACPI)
+    // Nota: O outw precisa estar definido (geralmente em assembly ou via __builtin_outw)
+    outw(0x604, 0x2000); 
+
+    while (1) {
+        __asm__ volatile ("hlt");
     }
 }
