@@ -1,110 +1,116 @@
 #include "io.h"
 #include "../kernel_utils.h"
 #include "text.h"
+
+/* * Função para ler um byte de uma porta de I/O.
+ * Essencial para comunicar com o controlador de teclado (0x60 e 0x64).
+ */
 static inline unsigned char inb(unsigned short port) {
     unsigned char ret;
-    // 'inb' lê um byte da porta especificada (%1) e joga no registrador al (%0)
     asm volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
     return ret;
 }
-// Tabela simplificada de Scancodes para caracteres (Set 1)
-// Tabela Scancode Set 1 - US QWERTY padrão
+
+/* * Tabela Scancode Set 1 - US QWERTY 
+ * Mapeia o "código de varredura" do hardware para caracteres ASCII.
+ */
 unsigned char keyboard_map[128] = {
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', /* 0x0E */
-    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',     /* 0x1C */
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', 
+    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',   
     0, /* 0x1D - Control */
     'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 
     0, /* 0x2A - Left Shift */
     '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 
     0, /* 0x36 - Right Shift */
-    '*',
-    0, /* 0x38 - Alt */
-    ' ', /* Espaço */
-    0, /* 0x3A - Caps Lock */
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, /* F1 a F10 */
-    0, /* 0x45 - Num Lock */
-    0, /* 0x46 - Scroll Lock */
-    '7', '8', '9', '-',
-    '4', '5', '6', '+',
-    '1', '2', '3', '0', '.',
-    0, 0, 0,
-    0, /* F11 */
-    0, /* F12 */
-    0  /* Restante vazio */
+    '*', 0, ' ', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    '7', '8', '9', '-', '4', '5', '6', '+', '1', '2', '3', '0', '.'
 };
-unsigned char numeros_map[128]={
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 0, 0, '\b',
-    0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, '\n',
-    0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 0, 0,
-    0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 0, 0,
-    0,  0,   ' ', 0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 0, 0,
-    0,  0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, 
-    '7', '8', '9', 0,  /* Teclado Numérico (Numpad) */
-    '4', '5', '6', 0,
-    '1', '2', '3', '0', '.'
-};
+
+/*
+ * k_get_char: Aguarda uma tecla ser pressionada.
+ */
 char k_get_char() {
-    char c = 0;
     while (1) {
-        // Verifica se há algo na porta do teclado
+        // Verifica o Status Register (Porta 0x64). O bit 0 indica se o buffer de saída tem dados.
         if (inb(0x64) & 0x01) { 
-            uint8_t scancode = inb(0x60);
+            unsigned char scancode = inb(0x60);
             
-            // Se o bit 7 for 0, a tecla foi PRESSIONADA
-            // Se for 1, a tecla foi SOLTADA (ignora aqui)
+            // Se o bit 7 estiver definido (0x80), a tecla foi SOLTADA (break code).
+            // Nós só queremos o PRESSIONAR da tecla (make code).
             if (!(scancode & 0x80)) {
-                return keyboard_map[scancode];
+                char c = keyboard_map[scancode];
+                if (c != 0) {
+                    return c;
+                }
             }
         }
+        // Uma pequena pausa para não fritar a CPU no QEMU enquanto espera
+        asm volatile("pause");
     }
 }
+
+/*
+ * k_fgets: Lê uma linha inteira do teclado até encontrar o '\n'.
+ * Gerencia o buffer e o eco visual na tela.
+ */
 void k_fgets(char *buffer, int size) {
     int i = 0;
-    char c;
-
     while (i < size - 1) {
-        c = k_get_char();
+        char c = k_get_char();
 
         if (c == '\n') {
-            k_putchar('\n'); // Pula linha na tela
+            k_putchar('\n');
             break;
         } 
-        else if (c == '\b') { // Tratamento de Backspace
+        else if (c == '\b') { // Backspace
             if (i > 0) {
                 i--;
-                k_putchar('\b'); // Move o cursor de volta, apaga e move de novo (depende da sua k_print)
+                k_putchar('\b'); // k_putchar precisa saber apagar o caractere anterior!
             }
         } 
-        else if (c != 0) { // Tecla válida
+        else {
             buffer[i++] = c;
             k_putchar(c); // Ecoa o caractere na tela
         }
     }
-    buffer[i] = '\0'; // Finaliza a string
+    buffer[i] = '\0'; // Nulo terminal importante para strings em C
 }
+
+/*
+ * k_scanf: Versão simplificada para ler inteiros.
+ */
 void* k_scanf(const char* tipo) {
     static int resultado_int;
     char buffer[16];
 
+    // Se o tipo for "i" (inteiro)
     if (tipo[0] == 'i' && tipo[1] == '\0') { 
         k_fgets(buffer, 16);
 
+        if (buffer[0] == '\0') return (void*)0;
+
         int res = 0;
         int i = 0;
-        
-        // Se o buffer estiver vazio (usuário só deu enter)
-        if (buffer[0] == '\0') return NULL;
+        int sinal = 1;
 
-        for (i = 0; buffer[i] != '\0'; i++) {
-            if (buffer[i] < '0' || buffer[i] > '9') {
-                return NULL; 
-            }
-            res = res * 10 + (buffer[i] - '0');
+        // Trata números negativos
+        if (buffer[0] == '-') {
+            sinal = -1;
+            i = 1;
         }
 
-        resultado_int = res;
+        for (; buffer[i] != '\0'; i++) {
+            if (buffer[i] >= '0' && buffer[i] <= '9') {
+                res = res * 10 + (buffer[i] - '0');
+            } else {
+                // Se encontrar algo que não é número no meio da string
+                return (void*)0; 
+            }
+        }
+
+        resultado_int = res * sinal;
         return (void*)&resultado_int;
     }
 
-    return NULL; // Sempre NULL para erros!
+    return (void*)0; 
 }

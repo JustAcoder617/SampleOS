@@ -2,18 +2,20 @@ ENTRY(_start)
 
 SECTIONS
 {
-    /* O Kernel começa em 1MB (padrão Multiboot) */
+    /* Garante que o arquivo comece em 1MB fisicamente e virtualmente */
     . = 1M;
 
-    .text :
+    .text : AT(ADDR(.text))
     {
-        /* O KEEP garante que o linker não jogue fora o cabeçalho */
-        KEEP(*(.multiboot))
+        /* ISSO AQUI É O QUE O QEMU PROCURA */
+        *(.multiboot) 
         *(.text)
         *(.text.*)
     }
 
-    .rodata : { *(.rodata*) }
-    .data   : { *(.data) }
-    .bss    : { *(.bss) }
+    .rodata ALIGN(4K) : AT(ADDR(.rodata)) { *(.rodata*) }
+    .data ALIGN(4K)   : AT(ADDR(.data))   { *(.data) }
+    .bss ALIGN(4K)    : AT(ADDR(.bss))    { *(.bss) *(COMMON) }
+
+    /DISCARD/ : { *(.comment) *(.eh_frame) *(.note.gnu.property) }
 }

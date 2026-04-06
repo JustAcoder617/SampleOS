@@ -1,29 +1,21 @@
-; boot.asm
-%define ALIGN    1 << 0
-%define MEMINFO  1 << 1
-%define FLAGS    ALIGN | MEMINFO
-%define MAGIC    0x1BADB002
-%define CHECKSUM -(MAGIC + FLAGS)
+section .bootstrap_stack, nobits
+align 16
+stack_bottom:
+resb 16384 ; 16 KB de espaço para a pilha
+stack_top:
 
-section .multiboot        ; SEÇÃO EXCLUSIVA PARA O CABEÇALHO
-    align 4
-    dd MAGIC
-    dd FLAGS
-    dd CHECKSUM
-
-section .text             ; SEÇÃO DE CÓDIGO COMEÇA AQUI
+section .text
     global _start
     extern main
 
 _start:
-    ; Configura o stack (opcional, mas recomendado)
-    ; mov esp, stack_space 
+    ; Configura o ponteiro da pilha ANTES de chamar o C
+    mov esp, stack_top
+
     call main
+
+    ; Se o C retornar, para a CPU
     cli
 .hang:
     hlt
     jmp .hang
-
-section .bss
-resb 8192                 ; 8KB para o stack
-stack_space:
