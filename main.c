@@ -6,7 +6,7 @@ int main(void){
     k_print("selecione oque você quer fazer: 1. Calculadora 2.sair");
     int choice=0;
     void* res=k_scanf("i");
-    if (res != 0) {
+    if (res != NULL) {
         choice = *(int*)res;
     }
     else if(res==NULL){
@@ -16,7 +16,8 @@ int main(void){
         {
             res=NULL;
             k_print("selecione oque você quer fazer: 1. Calculadora 2.sair");
-            if (res!=-1)
+            res=k_scanf("i");
+            if (res!=NULL)
             {
                 check=1;
             }

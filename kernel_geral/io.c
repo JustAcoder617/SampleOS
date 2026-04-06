@@ -1,6 +1,12 @@
 #include "io.h"
-#include "kernel_utils.h"
-#include "kernel_geral/text.h"
+#include "../kernel_utils.h"
+#include "text.h"
+static inline unsigned char inb(unsigned short port) {
+    unsigned char ret;
+    // 'inb' lê um byte da porta especificada (%1) e joga no registrador al (%0)
+    asm volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
+    return ret;
+}
 // Tabela simplificada de Scancodes para caracteres (Set 1)
 // Tabela Scancode Set 1 - US QWERTY padrão
 unsigned char keyboard_map[128] = {
@@ -60,45 +66,45 @@ void k_fgets(char *buffer, int size) {
         c = k_get_char();
 
         if (c == '\n') {
-            k_print_char('\n'); // Pula linha na tela
+            k_putchar('\n'); // Pula linha na tela
             break;
         } 
         else if (c == '\b') { // Tratamento de Backspace
             if (i > 0) {
                 i--;
-                k_print_char('\b'); // Move o cursor de volta, apaga e move de novo (depende da sua k_print)
+                k_putchar('\b'); // Move o cursor de volta, apaga e move de novo (depende da sua k_print)
             }
         } 
         else if (c != 0) { // Tecla válida
             buffer[i++] = c;
-            k_print_char(c); // Ecoa o caractere na tela
+            k_putchar(c); // Ecoa o caractere na tela
         }
     }
     buffer[i] = '\0'; // Finaliza a string
 }
 void* k_scanf(const char* tipo) {
-    // Precisamos de um lugar estático para guardar o número, 
-    // senão ele some quando a função acaba.
     static int resultado_int;
-    char buffer[16]; // Para guardar o que o usuário digita
+    char buffer[16];
 
-    if (strcmp(tipo, "i") == 0) {
-        // 1. Usa sua k_fgets para pegar a string do teclado (com eco na tela)
+    if (tipo[0] == 'i' && tipo[1] == '\0') { 
         k_fgets(buffer, 16);
 
-        // 2. Converte a string digitada para um número inteiro
         int res = 0;
-        for (int i = 0; buffer[i] != '\0'; i++) {
-            // Validação: se não for número, paramos a conversão
+        int i = 0;
+        
+        // Se o buffer estiver vazio (usuário só deu enter)
+        if (buffer[0] == '\0') return NULL;
+
+        for (i = 0; buffer[i] != '\0'; i++) {
             if (buffer[i] < '0' || buffer[i] > '9') {
-                return NULL;
+                return NULL; 
             }
             res = res * 10 + (buffer[i] - '0');
         }
 
         resultado_int = res;
-        return (void*)&resultado_int; // Retorna o endereço do número
+        return (void*)&resultado_int;
     }
 
-    return 1; // Se o tipo não for "i", retorna nulo
+    return NULL; // Sempre NULL para erros!
 }

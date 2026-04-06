@@ -1,10 +1,19 @@
-ENTRY(kernel_main)
-SECTIONS {
+ENTRY(_start)
+
+SECTIONS
+{
+    /* O Kernel começa em 1MB (padrão Multiboot) */
     . = 1M;
-    .text : {
-        *(.multiboot)
+
+    .text :
+    {
+        /* O KEEP garante que o linker não jogue fora o cabeçalho */
+        KEEP(*(.multiboot))
         *(.text)
+        *(.text.*)
     }
-    .data : { *(.data) }
-    .bss  : { *(.bss) }
+
+    .rodata : { *(.rodata*) }
+    .data   : { *(.data) }
+    .bss    : { *(.bss) }
 }

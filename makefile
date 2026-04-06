@@ -1,29 +1,31 @@
-# Variáveis de Compilação
 CC = gcc
 AS = nasm
 LD = ld
 
-# Flags para o Kernel (O segredo está aqui)
 CFLAGS = -m32 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector
 LDFLAGS = -m elf_i386 -T linker.ld
 
-# Arquivos (Ajuste os nomes conforme os seus)
-OBJS = boot.o kernel.o io.o text.o 
+OBJS = boot.o main.o io.o text.o kernel_utils.o
 
 all: kernel.bin
 
-# Compila o Assembly (Bootloader/Entry)
+kernel.bin: $(OBJS)
+	$(LD) $(LDFLAGS) -o kernel.bin $(OBJS)
 boot.o: boot.asm
 	$(AS) -f elf32 boot.asm -o boot.o
 
-# Compila os arquivos C
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+main.o: main.c
+	$(CC) $(CFLAGS) -c main.c -o main.o
 
-# Faz o Linkage de tudo usando o script linker.ld
-kernel.bin: $(OBJS)
-	$(LD) $(LDFLAGS) -o kernel.bin $(OBJS)
+kernel_utils.o: kernel_utils.c
+	$(CC) $(CFLAGS) -c kernel_utils.c -o kernel_utils.o
 
-# Limpa a sujeira
+io.o: kernel_geral/io.c
+	$(CC) $(CFLAGS) -c kernel_geral/io.c -o io.o
+
+text.o: kernel_geral/text.c
+	$(CC) $(CFLAGS) -c kernel_geral/text.c -o text.o
+run:
+	qemu-system-i386 -kernel kernel.bin -append "quiet"
 clean:
 	rm -f *.o kernel.bin
