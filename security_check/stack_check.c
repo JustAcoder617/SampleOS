@@ -3,16 +3,17 @@
 
 extern uint32_t stack_bottom;
 void desligar_pc();
-
+extern int outw();
 #define STACK_MAGIC 0xDEADC0DE
 
-void check_stack() {
+int check_stack() {
     // Usamos o operador '&' porque queremos o endereço onde a stack começa
     uint32_t* canary_address = (uint32_t*)&stack_bottom;
-
     if (*canary_address != STACK_MAGIC) {
         return 1;
-        
+    }
+    else{
+        return 0;
     }
 }
 void warning(void){

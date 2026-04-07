@@ -2,20 +2,48 @@ ENTRY(_start)
 
 SECTIONS
 {
-    /* Garante que o arquivo comece em 1MB fisicamente e virtualmente */
+    /* O Kernel começa em 1MB */
     . = 1M;
 
-    .text : AT(ADDR(.text))
+    /* SEÇÃO DE CÓDIGO */
+    .text BLOCK(4K) : AT(ADDR(.text))
     {
-        /* ISSO AQUI É O QUE O QEMU PROCURA */
-        *(.multiboot) 
+        /* FORÇA o Multiboot a ser a PRIMEIRA coisa do arquivo */
+        KEEP(*(.multiboot)) 
         *(.text)
         *(.text.*)
     }
 
-    .rodata ALIGN(4K) : AT(ADDR(.rodata)) { *(.rodata*) }
-    .data ALIGN(4K)   : AT(ADDR(.data))   { *(.data) }
-    .bss ALIGN(4K)    : AT(ADDR(.bss))    { *(.bss) *(COMMON) }
+    /* SEÇÃO DE DADOS SOMENTE LEITURA */
+    .rodata ALIGN(4K) : AT(ADDR(.rodata)) 
+    { 
+        *(.rodata*) 
+    }
 
-    /DISCARD/ : { *(.comment) *(.eh_frame) *(.note.gnu.property) }
+    /* SEÇÃO DE DADOS (Onde ficam seus contadores do timer) */
+    .data ALIGN(4K) : AT(ADDR(.data))   
+    { 
+        *(.data) 
+    }
+
+    /* SEÇÃO DA STACK (Importante para o seu Vigia de 7s) */
+    .bootstrap_stack ALIGN(4K) : AT(ADDR(.bootstrap_stack))
+    {
+        *(.bootstrap_stack)
+    }
+
+    /* SEÇÃO BSS (Variáveis não inicializadas) */
+    .bss ALIGN(4K) : AT(ADDR(.bss))    
+    { 
+        *(.bss) 
+        *(COMMON) 
+    }
+
+    /* DESCARTA lixo que o GCC coloca e que quebra o Boot */
+    /DISCARD/ : 
+    { 
+        *(.comment) 
+        *(.eh_frame) 
+        *(.note.gnu.property) 
+    }
 }
