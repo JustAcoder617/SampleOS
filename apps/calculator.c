@@ -9,13 +9,12 @@ void start_calculator() {
 
     k_print("\nDigite um numero: ");
     void* ptr1 = k_scanf("i");
-    if (ptr1) n1 = *(int*)ptr1; // SEM o '&'! O ptr1 JÁ É o endereço.
-
+    if (ptr1) n1 = *(int*)ptr1; 
     k_print("Agora, digite outro numero: ");
     void* ptr2 = k_scanf("i");
     if (ptr2) n2 = *(int*)ptr2;
 
-    k_print("O que voce quer fazer? (1. somar || 2. subtrair)");
+    k_print("O que voce quer fazer? (1. somar || 2. subtrair 3.dividir || 4.multiplicar)");
     void* ptr_op = k_scanf("i");
     if (ptr_op) operacao = *(int*)ptr_op;
 
@@ -26,6 +25,15 @@ void start_calculator() {
     } else if (operacao == 2) {
         resultado_final = n1 - n2;
         k_print("\nResultado da subtracao: ");
+        k_print_int(resultado_final);
+    } else if (operacao==3)
+    {
+        resultado_final=n1/n2;
+        k_print("O resultaado final é: ");
+        k_print_int(resultado_final);
+    } else if (operacao==4){
+        resultado_final=n1*n2;
+        k_print("O resultado final é: ");
         k_print_int(resultado_final);
     }
 }
