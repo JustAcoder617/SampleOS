@@ -10,15 +10,12 @@ int check_stack() {
     // Usamos o operador '&' porque queremos o endereço onde a stack começa
     uint32_t* canary_address = (uint32_t*)&stack_bottom;
     if (*canary_address != STACK_MAGIC) {
+        k_print("as");
         return 1;
     }
     else{
         return 0;
     }
-}
-void warning(void){
-    k_print("ATENTION:ERROR CODE NOSTACK");
-    desligar_pc();
 }
 
 void desligar_pc() {

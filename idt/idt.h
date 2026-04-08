@@ -34,5 +34,8 @@ void idt_set_gate(uint8_t num, uint32_t base, uint16_t sel, uint8_t flags);
 
 // Cria a tabela, limpa o lixo e carrega no processador
 void idt_init();
+extern void gpf_handler();    // Vetor 13: General Protection Fault
+extern void div_zero_handler(); // Vetor 0: Divisão por zero
+extern void page_fault_handler(); // Vetor 14: Erro de memória
 
 #endif

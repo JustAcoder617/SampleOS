@@ -21,6 +21,8 @@ void pic_remap() {
     );
 }
 
+volatile int status_flag=1;
+
 int main(){
     k_clear_screen();
     k_print("Iniciando SampeOs...\n");
@@ -43,7 +45,22 @@ int main(){
             int choice = *(int*)res;
             if (choice == 1) {
                 start_calculator(); 
-            } 
+            } else if (choice==3){
+                k_print("Voce quer desligar o anti-virus do kernel? 1.sim 2.nao");
+                void* res=k_scanf("i");
+                if (res!=(void*)0)
+                {
+                    int choice=*(int*)res;
+                    if (choice==1)
+                    {
+                        k_print("Desligando checker da stack...");
+                        status_flag=0;
+                        while (1);
+                    }
+                    
+                }
+                
+            }
             else if (choice == 2) {
                 k_print("Desligando...");
                 desligar_pc();
