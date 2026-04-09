@@ -22,6 +22,7 @@ void pic_remap() {
 }
 
 volatile int status_flag=1;
+volatile uint32_t timer_counter = 0;
 
 int main(){
     k_clear_screen();
@@ -31,7 +32,7 @@ int main(){
     pic_remap();    // 1. Organiza o hardware
     idt_init();     // 2. Cria o mapa de funções
     init_timer(100);// 3. Liga o tique-taque do relógio
-    
+    int n5=1/0;
     __asm__ volatile("sti"); // 4. Agora sim: "Pode falar, hardware!"
 
     k_print("----- Ola! Bem-vindo ao SampeOs! -----\n");

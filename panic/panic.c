@@ -22,7 +22,7 @@ void k_panic(int exception_num) {
     }
 
     k_print("\n\nO sistema foi paralisado para proteger o hardware.\n");
-    k_print("Por favor, reinicie a maquina virtual (QEMU).");
+    k_print("Por favor, reinicie a maquina virtual (QEMU) ou o seu Pc..");
 
     // 2. Trava o processador
     while(1) {

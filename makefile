@@ -22,6 +22,7 @@ OBJS = boot.o \
        stack_check.o \
        idt.o \
        pit.o \
+	   panic.o \
 
 # --- Regras Principais ---
 
@@ -39,6 +40,8 @@ pit.o: idt/pit.c idt/pit.h
 	$(CC) $(CFLAGS) -c idt/pit.c -o pit.o
 
 # --- Pasta: kernel_geral (Utilitários e Sistema) ---
+panic.o: panic/panic.c
+	$(CC) $(CFLAGS) -c panic/panic.c -o panic.o
 
 io.o: kernel_geral/io.c
 	$(CC) $(CFLAGS) -c kernel_geral/io.c -o io.o
