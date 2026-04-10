@@ -24,8 +24,6 @@ void idt_init() {
         idt_set_gate(i, 0, 0, 0);
     }
 
-    // 2. Registra as Exceções (O seu Try/Except de Hardware)
-    // Usamos as constantes que você definiu no .h
     idt_set_gate(0,  (uint32_t)div_zero_handler,  KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
     idt_set_gate(13, (uint32_t)gpf_handler,       KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
     idt_set_gate(14, (uint32_t)page_fault_handler, KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
