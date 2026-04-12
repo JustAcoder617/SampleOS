@@ -37,5 +37,5 @@ void idt_init();
 extern void gpf_handler();    // Vetor 13: General Protection Fault
 extern void div_zero_handler(); // Vetor 0: Divisão por zero
 extern void page_fault_handler(); // Vetor 14: Erro de memória
-
+extern void dummy_handler();
 #endif

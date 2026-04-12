@@ -10,13 +10,19 @@ align 4
     dd MB_ALIGN | MB_MEMINFO
     dd MB_CHECKSUM
 
-section .bootstrap_stack
+; --- Stack com Canário ---
+section .bss
+align 16
+stack_buffer:
+    resb 16380         ; Reserva o espaço sem encher o binário de zeros
+
+section .data
 align 16
 global stack_bottom
 stack_bottom:
-    dd 0xDEADC0DE      ; O Canário que o C vai vigiar
-    resb 16380         ; Restante da stack (16KB total)
-stack_top:
+    dd 0xDEADC0DE      ; O Canário fica no início (fundo) da stack
+    ; O restante da stack vem da seção BSS acima
+stack_top: equ stack_buffer + 16380
 
 section .data
 gdt_start:
@@ -43,7 +49,17 @@ gdt_ptr:
 
 section .text
 global _start
+global dummy_handler   ; Exporta para o idt.c
 extern main
+
+; --- DUMMY HANDLER ---
+; Usado para ignorar IRQs não configuradas (como teclado) sem dar crash
+dummy_handler:
+    pusha
+    mov al, 0x20
+    out 0x20, al       ; Envia EOI (End of Interrupt) para o Master PIC
+    popa
+    iret
 
 _start:
     ; Load GDT

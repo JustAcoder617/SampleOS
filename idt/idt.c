@@ -1,6 +1,5 @@
 #include "idt.h"
 #include "../kernel_utils.h"
-
 struct idt_entry idt[256];
 struct idt_ptr idtp;
 
@@ -30,8 +29,10 @@ void idt_init() {
 
     // 3. Registra as Interrupções de Hardware (IRQs)
     // O Timer fica no 32 por causa do remapeamento do PIC
+    for(int i = 32; i < 48; i++) {
+        idt_set_gate(i, (uint32_t)dummy_handler, 0x08, 0x8E);
+    }
     idt_set_gate(32, (uint32_t)timer_interrupt_handler, KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
-
     // 4. Carrega a IDT no processador
     __asm__ volatile("lidt %0" : : "m"(idtp));
     

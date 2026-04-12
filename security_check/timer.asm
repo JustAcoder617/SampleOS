@@ -1,128 +1,138 @@
-; --- interrupts.asm ---
+[bits 32]
 
-[bits 32]               ; Garante que estamos em 32 bits (Protected Mode)
-
-; Importamos a função de pânico do C
+; --- IMPORTAÇÕES (Coisas que vêm do C) ---
 extern k_panic
+extern status_flag
+extern check_stack
+extern timer_counter
 
-; Exportamos os nomes para o idt.c conseguir enxergar
+; --- EXPORTAÇÕES (Coisas que o idt.c vai enxergar) ---
 global div_zero_handler
 global gpf_handler
 global page_fault_handler
+global stack_fault_handler
 global timer_interrupt_handler
+global dummy_handler
+global check_funcionando
+global check_interrupter
+
+section .data
+    check_funcionando dd 0
+    check_interrupter dd 0
 
 section .text
 
 ; ---------------------------------------------------------
-; 1. DIVISÃO POR ZERO (Vetor 0)
+; DUMMY HANDLER (Para IRQs não usadas, ex: teclado por enquanto)
 ; ---------------------------------------------------------
-div_zero_handler:
-    pusha               ; Salva EAX, EBX, ECX, EDX, ESP, EBP, ESI, EDI
-    push ds             ; Salva os segmentos de dados
-    push es
-    
-    ; Garante que estamos usando o segmento de dados do Kernel
-    mov ax, 0x10        
-    mov ds, ax
-    mov es, ax
-
-    push 0              ; Empilha o código da exceção (0) para o k_panic
-    call k_panic        ; Pula para o C
-    
-    ; O k_panic tem um loop infinito, então o código abaixo 
-    ; tecnicamente nunca será executado, mas é boa prática ter:
-    add esp, 4          
-    pop es
-    pop ds
+dummy_handler:
+    pusha
+    mov al, 0x20
+    out 0x20, al       ; Avisa o PIC que a interrupção acabou
     popa
     iret
 
 ; ---------------------------------------------------------
-; 2. GENERAL PROTECTION FAULT (Vetor 13)
+; 1. DIVISÃO POR ZERO (Vetor 0) - Sem Error Code
+; ---------------------------------------------------------
+div_zero_handler:
+    pusha
+    push ds
+    push es
+    mov ax, 0x10        
+    mov ds, ax
+    mov es, ax
+
+    push 0              ; ID da exceção
+    call k_panic
+    hlt                 ; Trava se o panic retornar
+
+; ---------------------------------------------------------
+; 2. STACK FAULT (Vetor 12) - COM Error Code
+; ---------------------------------------------------------
+stack_fault_handler:
+    ; CPU já empilhou Error Code aqui
+    pusha
+    push ds
+    push es
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+
+    push 12
+    call k_panic
+    hlt
+
+; ---------------------------------------------------------
+; 3. GENERAL PROTECTION FAULT (Vetor 13) - COM Error Code
 ; ---------------------------------------------------------
 gpf_handler:
     pusha               
     push ds
     push es
-
     mov ax, 0x10
     mov ds, ax
     mov es, ax
 
-    push 13             ; Identificador da Exception 13
+    push 13
     call k_panic
-    
-    add esp, 4
-    pop es
-    pop ds
-    popa
-    add esp, 4          ; O GPF empilha um "error code" extra, precisamos limpar!
-    iret
+    hlt
 
 ; ---------------------------------------------------------
-; 3. PAGE FAULT (Vetor 14)
+; 4. PAGE FAULT (Vetor 14) - COM Error Code
 ; ---------------------------------------------------------
 page_fault_handler:
     pusha
     push ds
     push es
-
     mov ax, 0x10
     mov ds, ax
     mov es, ax
 
     push 14
     call k_panic
-
-    add esp, 4
-    pop es
-    pop ds
-    popa
-    add esp, 4          ; Page Fault também empilha error code
-    iret
+    hlt
 
 ; ---------------------------------------------------------
-; 4. TIMER INTERRUPT (Vetor 32)
+; 5. TIMER INTERRUPT (Vetor 32)
 ; ---------------------------------------------------------
-; Este é o único que NÃO chama o panic, ele faz o check de 7s
-extern status_flag
-extern check_stack
-extern timer_counter
-
 timer_interrupt_handler:
     pusha
     push ds
     push es
 
-    mov ax, 0x10        ; FIX: Carrega segmento de dados para ler status_flag
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
 
-    ; Lógica do contador (mesma de antes)
-    extern timer_counter
+    ; Seta flag para o monitor de recursos
+    mov dword [check_interrupter], 1 
+
     inc dword [timer_counter]
+    
+    ; Lógica de verificação da stack (canário)
     cmp dword [timer_counter], 127
     jb .finalizar_irq
 
     mov dword [timer_counter], 0
 
-    ; Verifica a flag do C
     mov eax, [status_flag]
     cmp eax, 1
-    je .finalizar_irq    ; Se flag for 1, pula o check da stack
+    je .finalizar_irq    
 
     call check_stack
     cmp eax, 1
     je .morreu_tudo
 
 .finalizar_irq:
-    mov al, 0x20        ; EOI (End of Interrupt) - LIBERA O TECLADO
+    mov al, 0x20
     out 0x20, al
-    
     pop es
     pop ds
     popa
     iret
 
 .morreu_tudo:
-    push 99             ; Código customizado para "Stack Explodiu"
+    push 99             ; Erro: Stack Corrompida (Canário morreu)
+    call k_panic
+    hlt
