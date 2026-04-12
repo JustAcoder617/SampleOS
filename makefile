@@ -23,6 +23,7 @@ OBJS = boot.o \
        idt.o \
        pit.o \
 	   panic.o \
+	   monitor.o \
 
 # --- Regras Principais ---
 
@@ -65,6 +66,8 @@ stack_check.o: security_check/stack_check.c
 calculator.o: apps/calculator.c
 	$(CC) $(CFLAGS) -c apps/calculator.c -o calculator.o
 
+monitor.o: apps/system_monitor/monitor.c
+	$(CC) $(CFLAGS) -c apps/system_monitor/monitor.c -o monitor.o
 # --- Arquivos da Raiz ---
 
 boot.o: boot.asm

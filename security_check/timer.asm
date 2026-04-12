@@ -5,14 +5,13 @@ extern k_panic
 extern status_flag
 extern check_stack
 extern timer_counter
-
+extern dummy_handler
 ; --- EXPORTAÇÕES (Coisas que o idt.c vai enxergar) ---
 global div_zero_handler
 global gpf_handler
 global page_fault_handler
 global stack_fault_handler
 global timer_interrupt_handler
-global dummy_handler
 global check_funcionando
 global check_interrupter
 
@@ -21,17 +20,6 @@ section .data
     check_interrupter dd 0
 
 section .text
-
-; ---------------------------------------------------------
-; DUMMY HANDLER (Para IRQs não usadas, ex: teclado por enquanto)
-; ---------------------------------------------------------
-dummy_handler:
-    pusha
-    mov al, 0x20
-    out 0x20, al       ; Avisa o PIC que a interrupção acabou
-    popa
-    iret
-
 ; ---------------------------------------------------------
 ; 1. DIVISÃO POR ZERO (Vetor 0) - Sem Error Code
 ; ---------------------------------------------------------
