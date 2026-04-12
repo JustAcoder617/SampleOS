@@ -1,12 +1,13 @@
-
+#include "apps/system_monitor/system_monitor.h"
 #include "kernel_utils.h"
 #include "kernel_geral/io.h"
 #include "apps/calculator.h"
 #include "security_check/stack_check.h"
 #include "idt/pit.h"
 #include "idt/idt.h"
+#include "panic/panic.h"
 
-// Função vital para o hardware não conflitar com a CPU
+// Funcao vital para o hardware nao conflitar com a CPU
 void pic_remap() {
     // Envia comandos para o Master e Slave PIC
     __asm__ volatile (
@@ -28,16 +29,16 @@ int main(){
     k_clear_screen();
     k_print("Iniciando SampeOs...\n");
 
-    // ORDEM OBRIGATÓRIA:
+    // ORDEM OBRIGATORIA:
     pic_remap();    // 1. Organiza o hardware
-    idt_init();     // 2. Cria o mapa de funções
-    init_timer(100);// 3. Liga o tique-taque do relógio
+    idt_init();     // 2. Cria o mapa de funcoes
+    init_timer(100);// 3. Liga o tique-taque do relogio
     __asm__ volatile("sti"); // 4. Agora sim: "Pode falar, hardware!"
 
     k_print("----- Ola! Bem-vindo ao SampeOs! -----\n");
     
     while (1) {
-        k_print("\nSelecione: 1. Calculadora | 2. Sair\n");
+        k_print("\nSelecione: 1. Calculadora | 2. Sair 3.Monitor de seguranca\n");
         k_print("> ");
 
         void* res = k_scanf("i");
@@ -45,26 +46,27 @@ int main(){
             int choice = *(int*)res;
             if (choice == 1) {
                 start_calculator(); 
-            } else if (choice==3){
+            } else if (choice==4){
                 k_print("Voce quer desligar o anti-virus do kernel? 1.sim 2.nao");
-                void* res=k_scanf("i");
-                if (res!=(void*)0)
+                void* res_sec = k_scanf("i");
+                if (res_sec!=(void*)0)
                 {
-                    int choice=*(int*)res;
-                    if (choice==1)
+                    int choice_sec=*(int*)res_sec;
+                    if (choice_sec==1)
                     {
                         k_print("Desligando checker da stack...");
                         status_flag=0;
-                        while (1);
+                        continue;
                     }
-                    
                 }
-                
             }
             else if (choice == 2) {
                 k_print("Desligando...");
                 desligar_pc();
                 break; 
+            } else if (choice==3)
+            {
+                monitor_setup();
             }
         }
     }

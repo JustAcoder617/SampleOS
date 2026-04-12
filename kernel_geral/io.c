@@ -113,4 +113,4 @@ void* k_scanf(const char* tipo) {
     }
 
     return (void*)0; 
-}
+} 
