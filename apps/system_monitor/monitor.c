@@ -22,7 +22,4 @@ void monitor_setup() {
     } else{
         k_print("o sistema de interrupcoes de hardware nao esta funcionando. Nao e muito perigoso, mas mesmo assim e recomendado desligar o pc...\n");
     }
-    
-    
-    
 }
