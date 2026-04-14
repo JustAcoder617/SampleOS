@@ -31,7 +31,8 @@ jobs:
             ``` in the repo ```ini
             [${{ github.repository }}]
             ``` at ```bash
-            "${{ github.event.head_commit.timestamp }}"
+            "${{ github.event.head_commit.timestamp }}"   
+
             ```!! This is commit number ```yaml
             ${{ steps.count.outputs.total }}
-            ``` for this repo. Keep up the great work! 🚀️
+            ``` for this repo. Keep up the great work! 🚀️.
