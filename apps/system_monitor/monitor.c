@@ -7,20 +7,22 @@ extern int check_funcionando;
 extern int check_interrupter;
 
 void monitor_setup() {
-    if (check_funcionando == 0) {
-        k_print("O sistema de verificacao geral do kernel esta funcionando corretamente.");
-        k_print("\n");
-    } else {
-        k_print("ATENCAO: A VERIFICAO GERAL DE ERROS DESTE KERNEL ESTA DESATIVADA POR UM MOTIVO DESCONHECIDO. E ALTAMENTE RECOMENDADO REINICIAR O COMPUTADOR, POIS, A QUALQUER MOMENTO, ELE PODE REINICIAR OU TRAVAR SEM JUSTIFICATIVA.");
-        k_print("\n");
-        return;
+    k_clear_screen();
+    k_print("------ System Monitor-------\n\n\n");
+    k_print("bem vindo ao monitor de sistema do sample os!\n");
+    if (check_funcionando==0)
+    {
+        k_print("a verificacao geral do sistema esta funcionando corretamente.\n\n");
+    } else{
+        k_print("a verificacao geral do sistema nao esta funcionando. E recomendado desligar o pc...\n\n");
     }
-
-    if (check_interrupter == 0) {
-        k_print("A funcao do time interrupter handler está funcionando corretamente.");
-        k_print("\n");
-    } else {
-        k_print("ATENCAO: A FUNCAO TIME INTERRUPTER HANDLER NAO ESTA FUNCIONANDO POR UM MOTIVO DESCONHECIDO. A VERIFICACAO CONTRA STACK_OVERFLOW ESTA DESATIVADA. E RECOMENDADO REINICIAR O COMPUTADOR.");
-        k_print("\n");
+    if (check_interrupter==1)
+    {
+        k_print("o sistema de interrupcoes de hardware esta funcionando\n");
+    } else{
+        k_print("o sistema de interrupcoes de hardware nao esta funcionando. Nao e muito perigoso, mas mesmo assim e recomendado desligar o pc...\n");
     }
+    
+    
+    
 }
