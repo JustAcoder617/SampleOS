@@ -1,0 +1,37 @@
+name: Discord Webhook Notification
+
+on: [push]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Total Commits
+        id: count
+        run: |
+          echo "total=$(git rev-list --count HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Discord Webhook Action
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          embed-color: 3447003
+          embed-thumbnail-url: "https://github.githubassets.com/images/modules/logos_page/Octocat.png"
+          content: "😎️😏️🏗️💯️💻️🔥️ :ANOTHER LEGEND JUST PUSHED CODE!"
+          embed-description: |
+            The GOAT ```fix
+            ${{ github.actor }}
+            ``` just committed ```diff
+            + ${{ github.event.head_commit.message }}
+            ``` in the repo ```ini
+            [${{ github.repository }}]
+            ``` at ```bash
+            "${{ github.event.head_commit.timestamp }}"
+            ```!! This is commit number ```yaml
+            ${{ steps.count.outputs.total }}
+            ``` for this repo.
