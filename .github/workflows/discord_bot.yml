@@ -34,4 +34,4 @@ jobs:
             "${{ github.event.head_commit.timestamp }}"
             ```!! This is commit number ```yaml
             ${{ steps.count.outputs.total }}
-            ``` for this repo.
+            ``` for this repo. Keep up the great work! 🚀️
