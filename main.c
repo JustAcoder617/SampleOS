@@ -6,6 +6,7 @@
 #include "idt/pit.h"
 #include "idt/idt.h"
 #include "panic/panic.h"
+#include "apps/game/aleatorial.h"
 
 // Funcao vital para o hardware nao conflitar com a CPU
 void pic_remap() {
@@ -38,7 +39,7 @@ int main(){
     k_print("----- Ola! Bem-vindo ao SampeOs! -----\n");
     
     while (1) {
-        k_print("\nSelecione: 1. Calculadora | 2. Sair 3.Monitor de seguranca\n");
+        k_print("\nSelecione: 1. Calculadora | 2. Sair 3.Monitor de seguranca 4.Jogo aleatorial\n");
         k_print("> ");
 
         void* res = k_scanf("i");
@@ -47,18 +48,8 @@ int main(){
             if (choice == 1) {
                 start_calculator(); 
             } else if (choice==4){
-                k_print("Voce quer desligar o anti-virus do kernel? 1.sim 2.nao");
-                void* res_sec = k_scanf("i");
-                if (res_sec!=(void*)0)
-                {
-                    int choice_sec=*(int*)res_sec;
-                    if (choice_sec==1)
-                    {
-                        k_print("Desligando checker da stack...");
-                        status_flag=0;
-                        continue;
-                    }
-                }
+                k_print("redirecionando...");
+                aleatorial();
             }
             else if (choice == 2) {
                 k_print("Desligando...");
