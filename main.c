@@ -58,7 +58,11 @@ int main(){
             } else if (choice==3)
             {
                 monitor_setup();
+            } else if (choice==4)
+            {
+                aleatorial();
             }
+            
         }
     }
 

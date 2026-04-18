@@ -26,7 +26,6 @@ void idt_init() {
     idt_set_gate(0,  (uint32_t)div_zero_handler,  KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
     idt_set_gate(13, (uint32_t)gpf_handler,       KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
     idt_set_gate(14, (uint32_t)page_fault_handler, KERNEL_CODE_SEGMENT, IDT_FLAG_INTERRUPT_GATE);
-
     // 3. Registra as Interrupções de Hardware (IRQs)
     // O Timer fica no 32 por causa do remapeamento do PIC
     for(int i = 32; i < 48; i++) {

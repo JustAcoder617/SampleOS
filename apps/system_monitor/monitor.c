@@ -16,9 +16,9 @@ void monitor_setup() {
     } else{
         k_print("a verificacao geral do sistema nao esta funcionando. E recomendado desligar o pc...\n\n");
     }
-    if (check_interrupter==1)
+    if (check_interrupter>=1)
     {
-        k_print("o sistema de interrupcoes de hardware esta funcionando\n");
+        k_print("o sistema de interrupcoes de hardware esta funcionando.\n");
     } else{
         k_print("o sistema de interrupcoes de hardware nao esta funcionando. Nao e muito perigoso, mas mesmo assim e recomendado desligar o pc...\n");
     }
