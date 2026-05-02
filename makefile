@@ -26,6 +26,7 @@ OBJS = boot.o \
 	   monitor.o \
 	   aleatorial.o \
 	   math.o \
+	   start.o \
 
 # --- Regras Principais ---
 
@@ -54,6 +55,9 @@ text.o: kernel_geral/text.c
 
 math.o: kernel_geral/math_utils.c
 	$(CC) $(CFLAGS) -c kernel_geral/math_utils.c -o math.o
+
+start.o: start.c
+	$(CC) $(CFLAGS) -c start.c -o start.o
 # --- Pasta: security_check (O Vigia da Stack) ---
 
 timer.o: security_check/timer.asm

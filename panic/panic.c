@@ -18,7 +18,7 @@ void k_panic(int exception_num) {
         case 13: k_print("GENERAL PROTECTION FAULT (13)"); break;
         case 14: k_print("PAGE FAULT (14) - MEMORIA INVALIDA"); break;
         case 99: k_print("STACK OVERFLOW / SEGURANCA"); break;
-        case 12: k_print("STACK_FAULT (12) / MEMORIA");
+        case 12: k_print("STACK_FAULT (12) / MEMORIA"); break;
         default: k_print("EXCECAO DESCONHECIDA"); break;
     }
 

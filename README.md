@@ -1,2 +1,2 @@
 # SampleOS
- an little kernel. yeah
+## SampleOS is a simple operating system designed for educational purposes. It is built using C and Assembly language, and it provides basic functionalities such as process management, memory management.

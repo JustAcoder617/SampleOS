@@ -1,4 +1,4 @@
-; --- Multiboot ---
+; --- Multiboot Header ---
 MB_ALIGN     equ  1 << 0
 MB_MEMINFO   equ  1 << 1
 MB_MAGIC     equ  0x1BADB002
@@ -14,16 +14,16 @@ align 4
 section .bss
 align 16
 stack_buffer:
-    resb 16380         ; Reserva o espaço sem encher o binário de zeros
+    resb 16380         ; Reserva o espaço da stack
 
 section .data
 align 16
 global stack_bottom
 stack_bottom:
-    dd 0xDEADC0DE      ; O Canário fica no início (fundo) da stack
-    ; O restante da stack vem da seção BSS acima
+    dd 0xDEADC0DE      ; O Canário fica no fundo da stack
 stack_top: equ stack_buffer + 16380
 
+; --- GDT (Global Descriptor Table) ---
 section .data
 gdt_start:
     dq 0 ; null descriptor
@@ -47,29 +47,29 @@ gdt_ptr:
     dw gdt_end - gdt_start - 1
     dd gdt_start
 
+; --- Código Principal ---
 section .text
 global _start
-global dummy_handler   ; Exporta para o idt.c
-extern main
+global dummy_handler
+extern setup_start      ; Agora chamamos o seu setup_start no C
 
 ; --- DUMMY HANDLER ---
-; Usado para ignorar IRQs não configuradas (como teclado) sem dar crash
 dummy_handler:
     pusha
     mov al, 0x20
-    out 0x20, al       ; Envia EOI (End of Interrupt) para o Master PIC
+    out 0x20, al       
     popa
     iret
 
 _start:
-    ; Load GDT
+    ; 1. Configura a GDT
     lgdt [gdt_ptr]
     
-    ; Far jump to reload CS
+    ; 2. Far jump para recarregar o CS (Code Segment)
     jmp 0x08:.reload_cs
 .reload_cs:
     
-    ; Set data segments
+    ; 3. Configura os segmentos de dados
     mov ax, 0x10
     mov ds, ax
     mov es, ax
@@ -77,8 +77,20 @@ _start:
     mov gs, ax
     mov ss, ax
     
+    ; 4. Configura o ponteiro da pilha
     mov esp, stack_top
-    call main          ; Vai para o C
+
+    ; --- INTEGRAÇÃO COM START.C ---
+    ; No momento do boot:
+    ; EAX contém o Magic Number (0x2BADB002)
+    ; EBX contém o endereço da struct Multiboot Info (RAM, etc)
+    
+    push ebx            ; Segundo argumento da setup_start (struct pointer)
+    push eax            ; Primeiro argumento da setup_start (magic number)
+
+    call setup_start    ; Vai para o start.c fazer as verificações
+    
+    ; Caso o setup_start retorne (não deveria), entra em loop
     cli
 .hang: hlt
     jmp .hang

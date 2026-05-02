@@ -7,7 +7,6 @@
 #include "idt/idt.h"
 #include "panic/panic.h"
 #include "apps/game/aleatorial.h"
-
 // Funcao vital para o hardware nao conflitar com a CPU
 void pic_remap() {
     // Envia comandos para o Master e Slave PIC
